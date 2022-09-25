@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { Container, Box, Heading, Card, Image, Text } from "gestalt";
+import { Container, Box, Heading, Card, Image, Text, SearchField, Icon } from "gestalt";
 import { Link } from "react-router-dom";
+import Loader from "./Loader";
 import "./App.css";
 import Strapi from "strapi-sdk-javascript/build/main";
 const apiUrl = process.env.API_URL || "http://ashwiki.ru:1337";
@@ -8,7 +9,9 @@ const strapi = new Strapi(apiUrl);
 
 class App extends Component {
   state = {
-    brands: []
+    brands: [],
+    searchTerm: "",
+    loadingBrands: true
   };
 
   async componentDidMount() {
@@ -36,17 +39,49 @@ class App extends Component {
         }
       });
       // console.log(response);
-      this.setState({ brands: response.data.brands.data });
+      this.setState({ brands: response.data.brands.data, loadingBrands: false });      
     } catch (err) {
       console.error(err);
+      this.setState({ loadingBrands: false });      
     }
   }
 
+  handleChange = ({ value }) => {
+    this.setState({ searchTerm: value });
+  };
+  
+  filteredBrands = ({ searchTerm, brands }) => {
+    return brands.filter(brand => {
+      return (
+        brand.attributes.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        brand.attributes.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+  };
+
   render() {
-    const { brands } = this.state;
+    const { searchTerm, loadingBrands } = this.state;
 
     return (
       <Container>
+        {/* Brands Search Field */}
+        <Box display="flex" justifyContent="center" marginTop={4}>
+          <SearchField
+            id="searchField"
+            accessibilityLabel="Brands Search Field"
+            onChange={this.handleChange}
+            placeholder="Search Brands"
+          />
+          <Box margin={3}>
+            <Icon
+              icon="filter"
+              color={searchTerm ? "orange" : "gray"}
+              size={20}
+              accessibilityLabel="Filter"
+            />
+          </Box>
+        </Box>
+
         {/* Brands Section */}
         <Box display="flex" justifyContent="center" marginBottom={2}>
           {/* Brands Header */}
@@ -66,7 +101,7 @@ class App extends Component {
           display="flex"
           justifyContent="around"
         >
-          {brands.map(brand => (
+          {this.filteredBrands(this.state).map(brand => (
             <Box paddingY={4} margin={2} width={200} key={brand.id}>
                <Card
                 image={
@@ -99,6 +134,8 @@ class App extends Component {
             </Box>
           ))}  
         </Box>
+        {/* <Spinner show={loadingBrands} accessibilityLabel="Loading Spinner" /> */}
+        <Loader show={loadingBrands} />        
       </Container>
     );
   }
