@@ -24,7 +24,7 @@ const Navbar = () => (
       <Box display="flex" alignItems="center">
         <Box margin={2} height={50} width={50}>
           <Image
-            alt="BrewHaha Logo"
+            alt="Craft Brands"
             naturalHeight={1}
             naturalWidth={1}
             src="./icons/logo.svg"
